@@ -54,7 +54,10 @@ export default {
     },
   ],
   models: [
-    { id: "MiniMax-M3", name: "MiniMax M3", targetFormat: "claude" },
+    // taros fork patch: targetFormat "claude" -> "openai". The OpenAI transport
+    // (api.minimax.io/v1/chat/completions) carries image_url for vision; the
+    // claude-format path drops the image (openai->claude image translation gap).
+    { id: "MiniMax-M3", name: "MiniMax M3", targetFormat: "openai" },
     { id: "MiniMax-M2.7", name: "MiniMax M2.7" },
     { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
     { id: "MiniMax-M2.1", name: "MiniMax M2.1" },
