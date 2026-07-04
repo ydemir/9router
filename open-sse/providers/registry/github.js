@@ -34,7 +34,7 @@ export default {
       vscodeVersion: "1.110.0",
       chatVersion: "0.38.0",
       userAgent: "GitHubCopilotChat/0.38.0",
-      apiVersion: "2026-03-10",
+      apiVersion: "2025-04-01",
     },
     usage: {
       url: "https://api.github.com/copilot_internal/user",
