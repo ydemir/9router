@@ -136,7 +136,16 @@ export class GithubExecutor extends BaseExecutor {
   }
 
   async execute(options) {
-    const { model, log } = options;
+    let { model, log } = options;
+
+    if (model === "mai-code-1-flash") {
+      model = "mai-code-1-flash-picker";
+      options = {
+        ...options,
+        model,
+        body: options.body ? { ...options.body, model } : options.body
+      };
+    }
 
     // Only use /responses for models that are explicitly known to need it (e.g. gpt codex models)
     // and that the /responses endpoint actually serves (excludes Gemini/Claude, see #1062).
