@@ -27,11 +27,17 @@ export default {
     refreshUrl: "https://auth.x.ai/oauth2/token",
   },
   models: [
-    { id: "grok-4", name: "Grok 4" },
-    { id: "grok-4-fast-reasoning", name: "Grok 4 Fast Reasoning" },
-    { id: "grok-code-fast-1", name: "Grok Code Fast" },
-    { id: "grok-3", name: "Grok 3" },
-    { id: "grok-2-image-1212", name: "Grok 2 Image", params: ["n","response_format"], kind: "image" },
+    { id: "grok-4.6", name: "Grok 4.6" },
+    { id: "grok-4.5", name: "Grok 4.5" },
+    { id: "grok-4.3", name: "Grok 4.3" },
+    { id: "grok-4.20-0309-reasoning", name: "Grok 4.20 Reasoning" },
+    { id: "grok-4.20-0309-non-reasoning", name: "Grok 4.20 Non-reasoning" },
+    { id: "grok-4.20-multi-agent-0309", name: "Grok 4.20 Multi-agent" },
+    { id: "grok-build-0.1", name: "Grok Build 0.1" },
+    { id: "grok-imagine-image-2.0", name: "Grok Imagine Image 2.0", params: ["n","response_format"], kind: "image" },
+    { id: "grok-imagine-image-quality", name: "Grok Imagine Image Quality", params: ["n","response_format"], kind: "image" },
+    { id: "grok-imagine-image", name: "Grok Imagine Image", params: ["n","response_format"], kind: "image" },
+    { id: "grok-imagine-video-1.5", name: "Grok Imagine Video 1.5", params: ["duration","aspect_ratio","resolution"], kind: "video" },
     { id: "grok-imagine-video", name: "Grok Imagine Video", params: ["duration","aspect_ratio","resolution"], kind: "video" },
   ],
   serviceKinds: ["llm","imageToText","webSearch","image","video"],
@@ -40,8 +46,8 @@ export default {
   // Docs: https://docs.x.ai/developers/rest-api-reference/inference/videos
   videoConfig: { baseUrl: "https://api.x.ai/v1/videos" },
   searchViaChat: {
-    defaultModel: "grok-4.20-reasoning",
+    defaultModel: "grok-4.6",
     endpoint: "https://api.x.ai/v1/responses",
-    pricingUrl: "https://x.ai/api#pricing",
+    pricingUrl: "https://docs.x.ai/docs/models",
   },
 };
