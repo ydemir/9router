@@ -11,7 +11,7 @@ const searchModel = (id) => PROVIDER_MEDIA[id]?.searchViaChat?.defaultModel;
 const searchEndpoint = (id, model) =>
   (PROVIDER_MEDIA[id]?.searchViaChat?.endpoint || "").replace("{model}", model || "");
 
-const REQUEST_TIMEOUT_MS = 15000;
+const REQUEST_TIMEOUT_MS = 35000;
 const DEFAULT_MAX_RESULTS = 10;
 
 /**
@@ -205,7 +205,7 @@ const CHAT_SEARCH_CONFIG = {
     buildBody: (query, model) => ({
       model,
       input: [{ role: "user", content: query }],
-      tools: [{ type: "web_search" }]
+      tools: [{ type: "web_search" }, { type: "x_search" }]
     }),
     buildHeaders: (token) => ({
       "Content-Type": "application/json",

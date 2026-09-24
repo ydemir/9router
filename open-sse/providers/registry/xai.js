@@ -27,6 +27,7 @@ export default {
     refreshUrl: "https://auth.x.ai/oauth2/token",
   },
   models: [
+    { id: "grok-4.7", name: "Grok 4.7" },
     { id: "grok-4.6", name: "Grok 4.6" },
     { id: "grok-4.5", name: "Grok 4.5" },
     { id: "grok-4.3", name: "Grok 4.3" },
@@ -51,7 +52,7 @@ export default {
   // Docs: https://docs.x.ai/developers/rest-api-reference/inference/videos
   videoConfig: { baseUrl: "https://api.x.ai/v1/videos" },
   searchViaChat: {
-    defaultModel: "grok-4.6",
+    defaultModel: "grok-4.7",
     endpoint: "https://api.x.ai/v1/responses",
     pricingUrl: "https://docs.x.ai/docs/models",
   },
