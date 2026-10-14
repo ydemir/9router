@@ -1,3 +1,8 @@
+# Unreleased
+
+## Fixes
+- **Codex Images**: use the available `gpt-6.1-sol` Responses model instead of retired `gpt-5.5`, preserving the requested GPT Image tool model.
+
 # v0.5.99 (2026-10-08)
 
 ## Features

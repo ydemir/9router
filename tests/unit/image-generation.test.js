@@ -11,6 +11,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleImageGenerationCore } from "../../open-sse/handlers/imageGenerationCore.js";
+import { CODEX_CLI_VERSION } from "../../open-sse/config/appConstants.js";
 
 const originalFetch = global.fetch;
 
@@ -356,7 +357,7 @@ describe("handleImageGenerationCore", () => {
         headers: expect.objectContaining({
           authorization: "Bearer codex-token",
           "chatgpt-account-id": "account-123",
-          version: "0.154.0",
+          version: CODEX_CLI_VERSION,
         }),
       })
     );
@@ -378,9 +379,13 @@ describe("handleImageGenerationCore", () => {
     });
   });
 
-  it("generates image with Codex gpt-image-2.5 tool model", async () => {
-    global.fetch.mockResolvedValueOnce(
-      new Response(
+  it.each(["gpt-image-1.5", "gpt-image-2", "gpt-image-2.5", "gpt-image-2.5-flare", "gpt-image-2.5-sunburst"])("generates %s with an available Codex main model", async (model) => {
+    global.fetch.mockImplementationOnce(async (_url, options) => {
+      const requestBody = JSON.parse(options.body);
+      if (requestBody.model !== "gpt-6.1-sol") {
+        return new Response(JSON.stringify({ detail: `The '${requestBody.model}' model is not supported when using Codex with a ChatGPT account.` }), { status: 400 });
+      }
+      return new Response(
         [
           "event: response.output_item.done",
           'data: {"item":{"type":"image_generation_call","result":"base64codeximage"}}',
@@ -388,8 +393,8 @@ describe("handleImageGenerationCore", () => {
           "",
         ].join("\n"),
         { status: 200, headers: { "Content-Type": "text/event-stream" } }
-      )
-    );
+      );
+    });
 
     const result = await handleImageGenerationCore({
       body: {
@@ -397,7 +402,7 @@ describe("handleImageGenerationCore", () => {
         size: "1024x1024",
         output_format: "png",
       },
-      modelInfo: { provider: "codex", model: "gpt-image-2.5" },
+      modelInfo: { provider: "codex", model },
       credentials: {
         accessToken: "codex-token",
         providerSpecificData: { chatgptAccountId: "account-123" },
@@ -408,9 +413,9 @@ describe("handleImageGenerationCore", () => {
     expect(result.success).toBe(true);
     const fetchCall = global.fetch.mock.calls[0];
     const requestBody = JSON.parse(fetchCall[1].body);
-    expect(requestBody.model).toBe("gpt-5.5");
+    expect(requestBody.model).toBe("gpt-6.1-sol");
     expect(requestBody.tools).toEqual([
-      { type: "image_generation", output_format: "png", size: "1024x1024", action: "generate", model: "gpt-image-2.5" },
+      { type: "image_generation", output_format: "png", size: "1024x1024", action: "generate", model },
     ]);
     expect(requestBody.tool_choice).toEqual({ type: "image_generation" });
     expect(requestBody.reasoning).toEqual({ effort: "medium", summary: "auto" });
