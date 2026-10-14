@@ -124,6 +124,8 @@ async function handleSingleProviderSearch(body, providerInput, request, apiKey, 
   const coreBody = {
     query: query.trim(),
     provider: providerId,
+    // `model` names the provider when `provider` is absent (dashboard example); only a search-model override when both are sent
+    model: body.provider ? body.model : undefined,
     max_results: body.max_results,
     search_type: body.search_type,
     country: body.country,
