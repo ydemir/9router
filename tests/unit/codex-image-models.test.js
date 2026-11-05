@@ -2,10 +2,42 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { getModelsByProviderId, getModelType, isValidModel } from "../../open-sse/config/providerModels.js";
 import { getModelInfoCore } from "../../open-sse/services/model.js";
 import { handleImageGenerationCore } from "../../open-sse/handlers/imageGenerationCore.js";
+import codexImageAdapter from "../../open-sse/handlers/imageProviders/codex.js";
 
 const models = ["gpt-6-sol"];
 
 afterEach(() => vi.unstubAllGlobals());
+
+describe("Codex GPT Image 2.6 models", () => {
+  const imageModels = ["gpt-image-2.6", "gpt-image-2.6-flare", "gpt-image-2.6-sunburst"];
+
+  it.each(imageModels)("exposes %s in the image catalog", (model) => {
+    const catalog = getModelsByProviderId("codex");
+    expect(catalog.filter((entry) => entry.id === model)).toHaveLength(1);
+    expect(catalog.find((entry) => entry.id === model)).toMatchObject({
+      kind: "image",
+      capabilities: ["text2img", "edit", "multiImage"],
+    });
+    expect(isValidModel("cx", model)).toBe(true);
+    expect(getModelType("cx", model)).toBe("image");
+  });
+
+  it.each(imageModels)("preserves %s for image edits without unsupported reasoning", (model) => {
+    const body = codexImageAdapter.buildBody(model, {
+      prompt: "Make the square blue",
+      image: "data:image/png;base64,cmVmZXJlbmNl",
+    });
+    expect(body.model).toBe("gpt-6-sol");
+    expect(body.tools).toEqual([{
+      type: "image_generation", output_format: "png", action: "edit", model,
+    }]);
+    expect(body.tool_choice).toEqual({ type: "image_generation" });
+    expect(body.input[0].content).toContainEqual({
+      type: "input_image", image_url: "data:image/png;base64,cmVmZXJlbmNl", detail: "high",
+    });
+    expect(body).not.toHaveProperty("reasoning");
+  });
+});
 
 describe("Codex GPT-6 image models", () => {
   it.each(models)("exposes %s-image as an image model while retaining its chat entry", (model) => {

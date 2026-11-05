@@ -17,6 +17,9 @@ const CODEX_TOOL_IMAGE_MODELS = new Set([
   "gpt-image-2.5",
   "gpt-image-2.5-flare",
   "gpt-image-2.5-sunburst",
+  "gpt-image-2.6",
+  "gpt-image-2.6-flare",
+  "gpt-image-2.6-sunburst",
 ]);
 
 function decodeOpenAIAuthClaims(token) {
@@ -245,7 +248,6 @@ export default {
       prompt_cache_key: randomUUID(),
       stream: true,
       store: false,
-      reasoning: toolModel ? { effort: "medium", summary: "auto" } : null,
     };
   },
   // Custom: codex parses SSE → either pipe to client or collect b64

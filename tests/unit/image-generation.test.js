@@ -379,7 +379,7 @@ describe("handleImageGenerationCore", () => {
     });
   });
 
-  it("generates image with Codex gpt-image-2.5 tool model", async () => {
+  it.each(["gpt-image-2.5", "gpt-image-2.6", "gpt-image-2.6-flare", "gpt-image-2.6-sunburst"])("generates image with Codex %s tool model without unsupported reasoning", async (model) => {
     global.fetch.mockResolvedValueOnce(
       new Response(
         [
@@ -398,7 +398,7 @@ describe("handleImageGenerationCore", () => {
         size: "1024x1024",
         output_format: "png",
       },
-      modelInfo: { provider: "codex", model: "gpt-image-2.5" },
+      modelInfo: { provider: "codex", model },
       credentials: {
         accessToken: "codex-token",
         providerSpecificData: { chatgptAccountId: "account-123" },
@@ -411,10 +411,10 @@ describe("handleImageGenerationCore", () => {
     const requestBody = JSON.parse(fetchCall[1].body);
     expect(requestBody.model).toBe("gpt-6-sol");
     expect(requestBody.tools).toEqual([
-      { type: "image_generation", output_format: "png", size: "1024x1024", action: "generate", model: "gpt-image-2.5" },
+      { type: "image_generation", output_format: "png", size: "1024x1024", action: "generate", model },
     ]);
     expect(requestBody.tool_choice).toEqual({ type: "image_generation" });
-    expect(requestBody.reasoning).toEqual({ effort: "medium", summary: "auto" });
+    expect(requestBody).not.toHaveProperty("reasoning");
 
     const responseBody = await result.response.json();
     expect(responseBody.data[0].b64_json).toBe("base64codeximage");
