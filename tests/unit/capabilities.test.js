@@ -50,6 +50,13 @@ describe("getCapabilitiesForModel", () => {
     }
   });
 
+  it("reports Claude Fable 5.2 as a permanent adaptive-thinking model", () => {
+    expect(getCapabilitiesForModel("claude", "claude-fable-5-2")).toMatchObject({
+      ...claudeSonnet5Expected,
+      thinkingCanDisable: false,
+    });
+  });
+
   it("reports Claude Fable 5.1 as a permanent adaptive-thinking model", () => {
     expect(getCapabilitiesForModel("claude", "claude-fable-5-1")).toMatchObject({
       ...claudeSonnet5Expected,
