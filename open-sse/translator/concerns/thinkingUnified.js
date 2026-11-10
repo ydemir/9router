@@ -296,7 +296,7 @@ function applyFormat(fmt, body, cfg, caps, supportedLevels, display, model = "",
       if (none && canDisable) { body.thinking = { type: "disabled" }; break; }
       const level = toLevel(eff);
       // Models that can disable thinking need the explicit adaptive switch.
-      // Permanently adaptive models such as Fable 5.1 accept effort directly. Claude
+      // Permanently adaptive models such as Fable 5.2 accept effort directly. Claude
       // ones still get the switch when it carries a requested display: display
       // defaults to "omitted" there, so dropping it hides the thinking text. A
       // thinking-off request (clamped to minimal) asks for no thinking text.

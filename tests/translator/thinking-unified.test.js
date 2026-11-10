@@ -88,14 +88,20 @@ describe("applyThinking per provider format", () => {
     expect(out.thinking).toEqual({ type: "adaptive" });
   });
   it("permanently adaptive Claude maps auto effort without adding a thinking switch", () => {
-    const out = apply("claude", "claude-fable-5-1", { thinking: { type: "adaptive" } }, "claude");
+    const out = apply("claude", "claude-fable-5-2", { thinking: { type: "adaptive" } }, "claude");
     expect(out.output_config).toEqual({ effort: "high" });
     expect(out.thinking).toBeUndefined();
   });
-  it("Fable 5.1 → effort without a redundant thinking switch", () => {
-    const out = apply("claude", "claude-fable-5-1", { reasoning_effort: "high" }, "claude");
+  it("Fable 5.2 → effort without a redundant thinking switch", () => {
+    const out = apply("claude", "claude-fable-5-2", { reasoning_effort: "high" }, "claude");
     expect(out.output_config).toEqual({ effort: "high" });
     expect(out.thinking).toBeUndefined();
+  });
+  it("Fable 5.2 passes every Claude Code effort level through unchanged", () => {
+    for (const effort of ["low", "medium", "high", "xhigh", "max"]) {
+      const out = apply("claude", "claude-fable-5-2", { output_config: { effort } }, "claude");
+      expect(out.output_config).toEqual({ effort });
+    }
   });
   it("claude haiku → enabled+budget", () => {
     const out = apply("claude", "claude-haiku-4.5", { reasoning_effort: "high" }, "claude");
