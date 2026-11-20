@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CodexExecutor } from "../../open-sse/executors/codex.js";
 
 const { executeMock, forcedSSEToJsonMock } = vi.hoisted(() => ({
   executeMock: vi.fn(),
@@ -35,7 +36,7 @@ vi.mock("../../open-sse/handlers/chatCore/sseToJsonHandler.js", () => ({
 
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.js");
 
-async function runNativeCodexRequest(model, reasoning) {
+async function runCodexRequest(model, reasoning, { providerThinking, userAgent = "codex-cli/0.144.1" } = {}) {
   const body = {
     model,
     input: "hello",
@@ -54,13 +55,14 @@ async function runNativeCodexRequest(model, reasoning) {
     cavemanEnabled: false,
     ponytailEnabled: false,
     pxpipeEnabled: false,
+    providerThinking,
     sourceFormatOverride: "openai-responses",
     clientRawRequest: {
       endpoint: "/v1/responses",
       body,
       headers: {
         accept: "application/json",
-        "user-agent": "codex-cli/0.144.1",
+        "user-agent": userAgent,
       },
     },
   });
@@ -84,14 +86,14 @@ describe("native Codex passthrough thinking suffixes", () => {
   });
 
   it("forwards Ultra for Sol", async () => {
-    const body = await runNativeCodexRequest("gpt-5.6-sol(ultra)");
+    const body = await runCodexRequest("gpt-5.6-sol(ultra)");
 
     expect(body.model).toBe("gpt-5.6-sol");
     expect(body.reasoning).toEqual({ effort: "ultra" });
   });
 
   it("converts unsupported Luna Ultra to Max without dropping reasoning metadata", async () => {
-    const body = await runNativeCodexRequest("gpt-5.6-luna(ultra)", {
+    const body = await runCodexRequest("gpt-5.6-luna(ultra)", {
       effort: "low",
       summary: "detailed",
     });
@@ -101,11 +103,21 @@ describe("native Codex passthrough thinking suffixes", () => {
   });
 
   it("forwards Ultra through a Terra review alias", async () => {
-    const body = await runNativeCodexRequest("gpt-5.6-terra-review(ultra)", {
+    const body = await runCodexRequest("gpt-5.6-terra-review(ultra)", {
       effort: "low",
     });
 
     expect(body.model).toBe("gpt-5.6-terra");
     expect(body.reasoning).toEqual({ effort: "ultra" });
+  });
+
+  it("keeps explicit Responses effort when Codex has a provider default", async () => {
+    const model = "gpt-6.2-sol";
+    const body = await runCodexRequest(model, { effort: "low" }, {
+      providerThinking: { mode: "ultra" }, userAgent: "python-urllib/3.14",
+    });
+
+    const outbound = new CodexExecutor().transformRequest(model, body, true, {});
+    expect(outbound.reasoning.effort).toBe("low");
   });
 });

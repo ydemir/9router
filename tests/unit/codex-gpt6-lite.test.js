@@ -18,13 +18,16 @@ describe("Codex GPT-6 Sol/Luna transport", () => {
     expect(getModelsByProviderId("codex").find((entry) => entry.id === model)).toBeDefined();
     expect(getCapabilitiesForModel("cx", model)).toMatchObject({ contextWindow, maxOutput: 128000, thinkingCanDisable: false });
     expect(getCapabilitiesForModel("codex", `${model}(high)`).contextWindow).toBe(contextWindow);
-    expect(getThinkingLevels("codex", model)).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
+    expect(getThinkingLevels("codex", model)).toEqual(["low", "medium", "high", "xhigh", "max"]);
     const pricing = getPricingForModel("codex", `${model}(high)`);
     expect(pricing).toMatchObject({ input, cached, output, reasoning: 0 });
     expect(calculateCostFromTokens({ output_tokens: 100, reasoning_tokens: 80 }, pricing)).toBeCloseTo(output * 100 / 1000000, 10);
-    const body = new CodexExecutor().transformRequest(model, { model, input: "hello", reasoning: { effort: "low" } }, true, credentials);
+    const executor = new CodexExecutor();
+    const body = executor.transformRequest(model, { model, input: "hello", reasoning: { effort: "low" } }, true, credentials);
     expect(body.model).toBe(model);
     expect(body.reasoning.effort).toBe("low");
+    const fallback = executor.transformRequest(model, { model, input: "hello", reasoning: { effort: "ultra" } }, true, credentials);
+    expect(fallback.reasoning.effort).toBe("max");
   });
 
   it.each(["gpt-6.1-sol", "gpt-6-sol", "gpt-6-luna"])("lists %s with Codex capabilities", (model) => {

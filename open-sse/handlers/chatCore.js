@@ -121,7 +121,7 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
       body = { ...body, thinking: { type: "enabled", budget_tokens: 10000 } };
     } else if (mode === "off" && !body.thinking) {
       body = { ...body, thinking: { type: "disabled" } };
-    } else if (!body.reasoning_effort) {
+    } else if (!body.reasoning_effort && !body.reasoning?.effort) {
       body = { ...body, reasoning_effort: mode };
     }
   }
