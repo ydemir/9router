@@ -20,6 +20,27 @@ function normalizeTools(tools) {
 }
 
 describe("CodexExecutor tool normalization", () => {
+  it("drops unsupported uniqueness constraints and retains property names and literal data", () => {
+    const listSchema = { type: "array", items: { type: "string" } };
+    const literal = { uniqueItems: true };
+    const parameters = {
+      type: "object",
+      properties: {
+        uniqueItems: { type: "boolean", default: true },
+        colors: { ...listSchema, uniqueItems: true },
+        details: { type: "object", const: literal },
+      },
+      $defs: { uniqueItems: { ...listSchema, uniqueItems: false } },
+    };
+    const [tool] = normalizeTools([{ type: "function", name: "list_colors", parameters }]);
+    expect(tool.parameters).toEqual({
+      ...parameters,
+      properties: { ...parameters.properties, colors: listSchema },
+      $defs: { uniqueItems: listSchema },
+    });
+    expect(parameters.properties.colors.uniqueItems).toBe(true);
+  });
+
   it("preserves explicit strict flags without changing optional arguments", () => {
     const parameters = {
       type: "object",

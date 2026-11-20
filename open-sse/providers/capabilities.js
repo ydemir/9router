@@ -312,6 +312,8 @@ export const PROVIDER_CAPABILITIES = {
     "claude-haiku-5-5": { vision: true, reasoning: true, search: true, thinkingFormat: "commandcode", thinkingEffortSupported: true, contextWindow: 1000000, maxOutput: 128000 },
   },
   "codex": {
+    "gpt-6.2-sol":               { vision: true, reasoning: true, search: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 500000, maxOutput: 128000 },
+    "gpt-6.2-astra":             { vision: true, reasoning: true, search: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 272000, maxOutput: 128000 },
     "gpt-6-astra":               { vision: true, reasoning: true, search: true, thinkingFormat: "openai", contextWindow: 272000, maxOutput: 128000 },
     "gpt-6-sol":                 { vision: true, reasoning: true, search: true, thinkingFormat: "openai", contextWindow: 272000, maxOutput: 128000 },
     // Without its own entry gpt-6.1-sol fell through to *gpt-6* (1.05M), overstating
@@ -864,6 +866,10 @@ export function getCapabilitiesForModel(provider, model) {
     const providerCaps = PROVIDER_CAPABILITIES[provider];
     if (providerCaps?.[model]) return { ...DEFAULT_CAPABILITIES, ...providerCaps[model] };
     if (providerCaps?.[baseModel]) return { ...DEFAULT_CAPABILITIES, ...providerCaps[baseModel] };
+    if (provider === "codex" || provider === "cx") {
+      const selection = /^(gpt-6\.2-(?:sol|astra))\((?:low|medium|high|xhigh|max|ultra)\)$/.exec(baseModel);
+      if (selection) return { ...DEFAULT_CAPABILITIES, ...providerCaps[selection[1]] };
+    }
   }
 
   // 2. Canonical exact, then catalog overlay so provider-scoped models.dev

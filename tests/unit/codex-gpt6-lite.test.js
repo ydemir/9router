@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CodexExecutor } from "../../open-sse/executors/codex.js";
 import { getModelsByProviderId } from "../../open-sse/config/providerModels.js";
 import { getCapabilitiesForModel } from "../../open-sse/providers/capabilities.js";
-import { getPricingForModel } from "../../open-sse/providers/pricing.js";
+import { calculateCostFromTokens, getPricingForModel } from "../../open-sse/providers/pricing.js";
 import { getThinkingLevels } from "../../open-sse/providers/thinkingLevels.js";
 import * as proxyFetchModule from "../../open-sse/utils/proxyFetch.js";
 
@@ -11,6 +11,22 @@ const credentials = { connectionId: "fixture", accessToken: "fixture-token" };
 afterEach(() => vi.restoreAllMocks());
 
 describe("Codex GPT-6 Sol/Luna transport", () => {
+  it.each([
+    ["gpt-6.2-sol", 500000, 2, 0.10, 10],
+    ["gpt-6.2-astra", 272000, 8, 0.40, 40],
+  ])("publishes %s with the Codex context window and standard reference rates", (model, contextWindow, input, cached, output) => {
+    expect(getModelsByProviderId("codex").find((entry) => entry.id === model)).toBeDefined();
+    expect(getCapabilitiesForModel("cx", model)).toMatchObject({ contextWindow, maxOutput: 128000, thinkingCanDisable: false });
+    expect(getCapabilitiesForModel("codex", `${model}(high)`).contextWindow).toBe(contextWindow);
+    expect(getThinkingLevels("codex", model)).toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
+    const pricing = getPricingForModel("codex", `${model}(high)`);
+    expect(pricing).toMatchObject({ input, cached, output, reasoning: 0 });
+    expect(calculateCostFromTokens({ output_tokens: 100, reasoning_tokens: 80 }, pricing)).toBeCloseTo(output * 100 / 1000000, 10);
+    const body = new CodexExecutor().transformRequest(model, { model, input: "hello", reasoning: { effort: "low" } }, true, credentials);
+    expect(body.model).toBe(model);
+    expect(body.reasoning.effort).toBe("low");
+  });
+
   it.each(["gpt-6.1-sol", "gpt-6-sol", "gpt-6-luna"])("lists %s with Codex capabilities", (model) => {
     const entry = getModelsByProviderId("codex").find((item) => item.id === model);
     expect(entry?.responsesLite).toBe(true);

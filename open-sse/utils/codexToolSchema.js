@@ -16,14 +16,14 @@
 // somewhere that accepts it (#3922).
 //
 // Scope guardrail (#3667): this is NOT a global schema sanitizer. Providers
-// that do support `\p{...}` keep the constraint untouched — the strip runs only
-// on the Codex dispatch path, and only on `pattern` strings that actually
-// contain a property escape. Everything else in the schema (including valid
-// patterns) passes through byte-identical.
+// that support these constraints keep them untouched. Codex also rejects the
+// `uniqueItems` keyword (#5750).
 
 // `\p{...}` / `\P{...}` with an odd number of preceding backslashes — an even
 // count means the backslash itself is escaped, so `\\p{Cc}` is a literal "p".
 const UNICODE_PROPERTY_ESCAPE = /(^|[^\\])(\\\\)*\\[pP]\{/;
+const SCHEMA_MAPS = new Set(["properties", "patternProperties", "$defs", "definitions", "dependentSchemas", "dependencies"]);
+const LITERALS = new Set(["default", "enum", "const", "examples"]);
 
 export function hasUnicodePropertyEscape(pattern) {
   return typeof pattern === "string" && UNICODE_PROPERTY_ESCAPE.test(pattern);
@@ -31,9 +31,7 @@ export function hasUnicodePropertyEscape(pattern) {
 
 // Copy-on-write walk: returns the original reference when nothing changed, so
 // untouched schemas keep object identity and callers can cheaply detect a no-op.
-// `properties` is special-cased because its keys are arbitrary property *names*
-// (which may themselves be "pattern" or "properties") and must never be read as
-// schema keywords; every other key recurses as an ordinary schema node.
+// Schema maps use arbitrary names, and literal values are never schema nodes.
 function stripNode(node, stats) {
   if (Array.isArray(node)) {
     let changed = false;
@@ -47,23 +45,22 @@ function stripNode(node, stats) {
   if (!node || typeof node !== "object") return node;
 
   let changed = false;
-  const next = {};
+  const next = { ...node };
   for (const [key, value] of Object.entries(node)) {
-    if (key === "pattern" && hasUnicodePropertyEscape(value)) {
+    if (key === "uniqueItems" || (key === "pattern" && hasUnicodePropertyEscape(value))) {
       stats.removed++;
       changed = true;
+      delete next[key];
       continue;
     }
-    if (key === "properties" && value && typeof value === "object" && !Array.isArray(value)) {
-      let propsChanged = false;
-      const props = {};
-      for (const [propName, propSchema] of Object.entries(value)) {
-        const cleaned = stripNode(propSchema, stats);
-        if (cleaned !== propSchema) propsChanged = true;
-        props[propName] = cleaned;
+    if (LITERALS.has(key)) continue;
+    if (SCHEMA_MAPS.has(key) && value && typeof value === "object" && !Array.isArray(value)) {
+      const removedBefore = stats.removed;
+      const entries = Object.entries(value).map(([name, schema]) => [name, stripNode(schema, stats)]);
+      if (stats.removed !== removedBefore) {
+        next[key] = Object.fromEntries(entries);
+        changed = true;
       }
-      if (propsChanged) changed = true;
-      next[key] = propsChanged ? props : value;
       continue;
     }
     const cleaned = stripNode(value, stats);
@@ -73,8 +70,8 @@ function stripNode(node, stats) {
   return changed ? next : node;
 }
 
-// Remove only the `pattern` constraints Codex's validator rejects.
+// Remove only the `pattern` and `uniqueItems` constraints Codex rejects.
 // Returns the same reference when the schema is already compatible.
-export function stripCodexUnsupportedPatterns(schema, stats = { removed: 0 }) {
+export function stripUnsupportedCodexToolSchema(schema, stats = { removed: 0 }) {
   return stripNode(schema, stats);
 }

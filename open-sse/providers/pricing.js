@@ -89,6 +89,9 @@ export const MODEL_PRICING = {
   "gpt-5.6-sol":                  { input: 5.00,  output: 30.00, cached: 0.50,  reasoning: 30.00,  cache_creation: 5.00  },
   // OpenAI Standard short-context pricing (developers.openai.com/api/docs/pricing).
   // Long-context pricing is higher, but this table currently stores one rate per model.
+  // GPT-6.2 output totals already include reasoning tokens.
+  "gpt-6.2-astra":                { input: 8.00,  output: 40.00, cached: 0.40, reasoning: 0, cache_creation: 10.00 },
+  "gpt-6.2-sol":                  { input: 2.00,  output: 10.00, cached: 0.10, reasoning: 0, cache_creation: 2.50 },
   "gpt-6-astra":                  { input: 10.00, output: 50.00, cached: 1.00,  reasoning: 50.00,  cache_creation: 12.50 },
   "gpt-6.1-sol":                  { input: 2.00,  output: 10.00, cached: 0.10,  reasoning: 10.00,  cache_creation: 2.50  },
   "gpt-6.1-terra":                { input: 1.00,  output: 5.00,  cached: 0.05,  reasoning: 5.00,   cache_creation: 1.25  },
@@ -437,6 +440,10 @@ export function getPricingForModel(provider, model) {
   const baseModel = model.includes("/") ? model.split("/").pop() : model;
   if (MODEL_PRICING[baseModel]) return MODEL_PRICING[baseModel];
   if (MODEL_PRICING[model]) return MODEL_PRICING[model];
+  if (provider === "codex" || provider === "cx") {
+    const selection = /^(gpt-6\.2-(?:sol|astra))\((?:low|medium|high|xhigh|max|ultra)\)$/.exec(baseModel);
+    if (selection) return MODEL_PRICING[selection[1]];
+  }
 
   // 4. Pattern match
   for (const { pattern, pricing } of PATTERN_PRICING) {
@@ -495,7 +502,7 @@ export function calculateCostFromTokens(tokens, pricing) {
 
   const reasoningTokens = tokens.reasoning_tokens || 0;
   if (reasoningTokens > 0) {
-    cost += reasoningTokens * ((pricing.reasoning || pricing.output) / 1000000);
+    cost += reasoningTokens * ((pricing.reasoning ?? pricing.output) / 1000000);
   }
 
   if (cacheCreationTokens > 0) {
