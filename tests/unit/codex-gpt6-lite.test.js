@@ -19,6 +19,9 @@ describe("Codex GPT-6 Sol/Luna transport", () => {
     expect(getCapabilitiesForModel("cx", model)).toMatchObject({ contextWindow, maxOutput: 128000, thinkingCanDisable: false });
     expect(getCapabilitiesForModel("codex", `${model}(high)`).contextWindow).toBe(contextWindow);
     expect(getThinkingLevels("codex", model)).toEqual(["low", "medium", "high", "xhigh", "max"]);
+    const extended = `${model}[1m]`;
+    expect(getModelsByProviderId("codex").find((entry) => entry.id === extended)?.upstreamModelId).toBe(model);
+    expect(getCapabilitiesForModel("cx", extended).contextWindow).toBe(872000);
     const pricing = getPricingForModel("codex", `${model}(high)`);
     expect(pricing).toMatchObject({ input, cached, output, reasoning: 0 });
     expect(calculateCostFromTokens({ output_tokens: 100, reasoning_tokens: 80 }, pricing)).toBeCloseTo(output * 100 / 1000000, 10);

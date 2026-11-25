@@ -53,10 +53,13 @@ export default {
     },
   },
   models: [
+    // GPT 6.2 needs a Codex client identity >= 0.166.0 (the backend rejects older versions).
+    { id: "gpt-6.2-sol", name: "GPT 6.2 Sol", thinkingLevels: GPT_6_THINKING_LEVELS },
+    { id: "gpt-6.2-sol[1m]", name: "GPT 6.2 Sol (extended context)", upstreamModelId: "gpt-6.2-sol", thinkingLevels: GPT_6_THINKING_LEVELS },
+    { id: "gpt-6.2-astra", name: "GPT 6.2 Astra", thinkingLevels: GPT_6_THINKING_LEVELS },
+    { id: "gpt-6.2-astra[1m]", name: "GPT 6.2 Astra (extended context)", upstreamModelId: "gpt-6.2-astra", thinkingLevels: GPT_6_THINKING_LEVELS },
     { id: "gpt-6.1-sol", name: "GPT 6.1 Sol", responsesLite: true, thinkingLevels: GPT_6_THINKING_LEVELS },
     { id: "gpt-6.1-terra", name: "GPT 6.1 Terra", responsesLite: true, thinkingLevels: GPT_6_THINKING_LEVELS },
-    { id: "gpt-6.2-sol", name: "GPT 6.2 Sol", thinkingLevels: GPT_6_THINKING_LEVELS },
-    { id: "gpt-6.2-astra", name: "GPT 6.2 Astra", thinkingLevels: GPT_6_THINKING_LEVELS },
     { id: "gpt-6-astra", name: "GPT 6.0 Astra" },
     { id: "gpt-6-astra[1m]", name: "GPT 6.0 Astra (extended context)", upstreamModelId: "gpt-6-astra" },
     { id: "gpt-6-sol", name: "GPT 6.0 Sol", responsesLite: true, thinkingLevels: GPT_6_THINKING_LEVELS },
